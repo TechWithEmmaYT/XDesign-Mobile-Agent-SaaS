@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import DeviceFrameToolbar from "./device-frame-toolbar";
 import { toast } from "sonner";
 import DeviceFrameSkeleton from "./device-frame-skeleton";
+import { useRegenerateFrame, useDeleteFrame } from "@/features/use-frame";
 
 type PropsType = {
   html: string;
@@ -22,6 +23,7 @@ type PropsType = {
   toolMode: ToolModeType;
   theme_style?: string;
   isLoading?: boolean;
+  projectId: string;
   onOpenHtmlDialog: () => void;
 };
 const DeviceFrame = ({
@@ -35,14 +37,18 @@ const DeviceFrame = ({
   toolMode,
   theme_style,
   isLoading = false,
+  projectId,
   onOpenHtmlDialog,
 }: PropsType) => {
-  const { selectedFrameId, setSelectedFrameId } = useCanvas();
+  const { selectedFrameId, setSelectedFrameId, updateFrame } = useCanvas();
   const [frameSize, setFrameSize] = useState({
     width,
     height: minHeight,
   });
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const regenerateMutation = useRegenerateFrame(projectId);
+  const deleteMutation = useDeleteFrame(projectId);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isSelected = selectedFrameId === frameId;
@@ -95,6 +101,27 @@ const DeviceFrame = ({
       setIsDownloading(false);
     }
   }, [frameSize.height, frameSize.width, fullHtml, isDownloading, title]);
+
+  const handleRegenerate = useCallback(
+    (prompt: string) => {
+      regenerateMutation.mutate(
+        { frameId, prompt },
+        {
+          onSuccess: () => {
+            updateFrame(frameId, { isLoading: true });
+          },
+          onError: () => {
+            updateFrame(frameId, { isLoading: false });
+          },
+        }
+      );
+    },
+    [frameId, regenerateMutation, updateFrame]
+  );
+
+  const handleDeleteFrame = useCallback(() => {
+    deleteMutation.mutate(frameId);
+  }, [frameId, deleteMutation]);
 
   return (
     <Rnd
@@ -151,45 +178,58 @@ const DeviceFrame = ({
         <DeviceFrameToolbar
           title={title}
           isSelected={isSelected && toolMode !== TOOL_MODE_ENUM.HAND}
-          disabled={isDownloading || isLoading}
+          disabled={
+            isDownloading ||
+            isLoading ||
+            regenerateMutation.isPending ||
+            deleteMutation.isPending
+          }
           isDownloading={isDownloading}
+          isRegenerating={regenerateMutation.isPending}
+          isDeleting={deleteMutation.isPending}
           onDownloadPng={handleDownloadPng}
+          onRegenerate={handleRegenerate}
+          onDeleteFrame={handleDeleteFrame}
           onOpenHtmlDialog={onOpenHtmlDialog}
         />
 
         <div
           className={cn(
-            `relative w-full h-auto shadow-sm
-              rounded-[36px] overflow-hidden
+            `relative w-full h-auto
+            rounded-[36px] overflow-hidden bg-black
+            shadow-2xl
               `,
             isSelected && toolMode !== TOOL_MODE_ENUM.HAND && "rounded-none"
           )}
         >
-          {isLoading ? (
-            <DeviceFrameSkeleton
-              style={{
-                position: "relative",
-                width,
-                height: minHeight,
-              }}
-            />
-          ) : (
-            <iframe
-              ref={iframeRef}
-              srcDoc={fullHtml}
-              title={title}
-              sandbox="allow-scripts allow-same-origin"
-              style={{
-                width: "100%",
-                minHeight: `${minHeight}px`,
-                height: `${frameSize.height}px`,
-                border: "none",
-                pointerEvents: "none",
-                display: "block",
-                background: "white",
-              }}
-            />
-          )}
+          <div className="relative bg-white dark:bg-background overflow-hidden">
+            {isLoading ? (
+              <DeviceFrameSkeleton
+                style={{
+                  position: "relative",
+                  width,
+                  minHeight: minHeight,
+                  height: `${frameSize.height}px`,
+                }}
+              />
+            ) : (
+              <iframe
+                ref={iframeRef}
+                srcDoc={fullHtml}
+                title={title}
+                sandbox="allow-scripts allow-same-origin"
+                style={{
+                  width: "100%",
+                  minHeight: `${minHeight}px`,
+                  height: `${frameSize.height}px`,
+                  border: "none",
+                  pointerEvents: "none",
+                  display: "block",
+                  background: "transparent",
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
     </Rnd>

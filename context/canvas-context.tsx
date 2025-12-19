@@ -34,6 +34,7 @@ interface CanvasContextType {
   setSelectedFrameId: (id: string | null) => void;
 
   loadingStatus: LoadingStatusType | null;
+  setLoadingStatus: (status: LoadingStatusType | null) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -59,12 +60,13 @@ export const CanvasProvider = ({
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
 
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatusType | null>(
-    hasInitialData ? "idle" : null
+    null
   );
 
   const [prevProjectId, setPrevProjectId] = useState(projectId);
   if (projectId !== prevProjectId) {
     setPrevProjectId(projectId);
+    setLoadingStatus(hasInitialData ? "idle" : "running");
     setFrames(initialFrames);
     setThemeId(initialThemeId || THEME_LIST[0].id);
     setSelectedFrameId(null);
@@ -91,7 +93,8 @@ export const CanvasProvider = ({
 
       switch (topic) {
         case "generation.start":
-          setLoadingStatus("running");
+          const status = data.status;
+          setLoadingStatus(status);
           break;
         case "analysis.start":
           setLoadingStatus("analyzing");
@@ -124,7 +127,7 @@ export const CanvasProvider = ({
           setLoadingStatus("completed");
           setTimeout(() => {
             setLoadingStatus("idle");
-          }, 1000);
+          }, 100);
           break;
         default:
           break;
@@ -158,6 +161,7 @@ export const CanvasProvider = ({
         updateFrame,
         addFrame,
         loadingStatus,
+        setLoadingStatus,
       }}
     >
       {children}

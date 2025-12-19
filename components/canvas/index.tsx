@@ -25,8 +25,14 @@ const Canvas = ({
   isPending: boolean;
   projectName: string | null;
 }) => {
-  const { theme, frames, selectedFrame, setSelectedFrameId, loadingStatus } =
-    useCanvas();
+  const {
+    theme,
+    frames,
+    selectedFrame,
+    setSelectedFrameId,
+    loadingStatus,
+    setLoadingStatus,
+  } = useCanvas();
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.SELECT);
   const [zoomPercent, setZoomPercent] = useState<number>(53);
   const [currentScale, setCurrentScale] = useState<number>(0.53);
@@ -64,8 +70,9 @@ const Canvas = ({
 
   useEffect(() => {
     if (!projectId) return;
-    if (loadingStatus !== "completed") return;
-    saveThumbnailToProject(projectId);
+    if (loadingStatus === "completed") {
+      saveThumbnailToProject(projectId);
+    }
   }, [loadingStatus, projectId, saveThumbnailToProject]);
 
   const onOpenHtmlDialog = () => {
@@ -141,7 +148,7 @@ const Canvas = ({
 
   const currentStatus = isSaving
     ? "finalizing"
-    : isPending
+    : isPending && (loadingStatus === null || loadingStatus !== "idle")
     ? "fetching"
     : loadingStatus !== "idle" && loadingStatus !== "completed"
     ? loadingStatus
@@ -226,6 +233,7 @@ const Canvas = ({
                         <DeviceFrame
                           key={frame.id}
                           frameId={frame.id}
+                          projectId={projectId}
                           title={frame.title}
                           html={frame.htmlContent}
                           isLoading={frame.isLoading}
