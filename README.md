@@ -1,10 +1,10 @@
 # 🎨 XDesign AI – AI Mobile Design Agent
 
-> ### 💼 Commercial License Required
-> This project is **Free for Personal Use**. A license is **Required** for SaaS, client work, or production apps.
+> ### Commercial License Required
+> This project is **Free for Personal Use**. A commercial license is **required** for any use of the code (in part or whole) for SaaS, client work, or production apps.
 > 
-> 🚀 **[Get Commercial License & Code ENVs](https://techwithemma.gumroad.com/l/ogphz)**
-> 📄 **[Read License Terms](https://github.com/TechWithEmmaYT/XDesign-Mobile-Agent-SaaS/blob/main/TECHWITHEMMA-LICENSE.md)**
+> 👉 **[Get Commercial License & Code ENVs](https://techwithemma.gumroad.com/l/ogphz)**
+> 👉 **[Read License Terms](https://github.com/TechWithEmmaYT/XDesign-Mobile-Agent-SaaS/blob/main/TECHWITHEMMA-LICENSE.md)**
 ---
 
 ## ❤️ Support the Channel
